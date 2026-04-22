@@ -90,9 +90,8 @@ export const useLabellerStore = create<LabellerState>((set, get) => ({
     await db.annotations.put({
       id: state.currentComment.id,
       text: state.currentComment.text,
-      hasSlang: false,
-      isCyberbullying: false,
-      slangAnnotations: [],
+      branchA: { hasSlang: false },
+      branchB: { hasCyberbullying: false },
       skipped: true
     });
 

@@ -8,15 +8,23 @@ export interface DatasetRow {
 export interface Annotation {
   id: string; // Same as DatasetRow id
   text: string;
-  hasSlang: boolean;
-  isCyberbullying: boolean;
-  slangAnnotations: Array<{
-    word: string;
-    rootWord: string;
-    usesBypass: boolean;
-    bypassType: 'codemixed' | 'spelling variation' | 'other';
-    bypassTypeOther: string | null;
-  }>;
+  
+  // Branch A: Slang / Profanity
+  branchA: {
+    hasSlang: boolean;
+    slangExpressionType?: 'explicit' | 'masked_obfuscated';
+    slangIntent?: 'expressive_casual' | 'directed_malicious';
+  };
+  
+  // Branch B: Cyberbullying / Toxicity
+  branchB: {
+    hasCyberbullying: boolean;
+    bullyingStyle?: 'explicit' | 'implicit_sarcastic';
+    targetEntity?: 'individual' | 'group_community' | 'organization';
+    toxicVectors?: Array<'body_shaming' | 'gender_based_sexual' | 'religious_communal' | 'intellectual_status' | 'threat_violence'>;
+    severityLevel?: 'low' | 'medium' | 'high';
+  };
+  
   skipped: boolean; 
 }
 

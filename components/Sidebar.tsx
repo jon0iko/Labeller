@@ -43,9 +43,8 @@ export function Sidebar() {
       serial: index + 1,
       id: a.id,
       text: a.text,
-      hasSlang: a.hasSlang,
-      isCyberbullying: a.isCyberbullying,
-      slangAnnotations: a.slangAnnotations
+      branchA: a.branchA,
+      branchB: a.branchB
     }));
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
