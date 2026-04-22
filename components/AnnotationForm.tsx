@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useLabellerStore } from '../lib/store';
 import { db } from '../lib/db';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Button } from './ui/button';
@@ -29,6 +29,8 @@ type FormValues = z.infer<typeof schema>;
 
 export function AnnotationForm() {
   const { currentComment, nextComment, prevComment, refreshState } = useLabellerStore();
+  const [tokens, setTokens] = useState<string[]>([]);
+  const [selectedWords, setSelectedWords] = useState<string[]>([]);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -50,6 +52,11 @@ export function AnnotationForm() {
 
   useEffect(() => {
     if (currentComment) {
+      // Split on spaces and extract unique tokens
+      const textTokens = currentComment.text.match(/[\w\u0980-\u09FF]+/g) || [];
+      setTokens(Array.from(new Set(textTokens)));
+      setSelectedWords([]);
+
       // Try load existing annotation
       db.annotations.get(currentComment.id).then(ann => {
         if (ann && !ann.skipped) {
@@ -75,7 +82,10 @@ export function AnnotationForm() {
     await db.annotations.put({
       id: currentComment.id,
       text: currentComment.text,
-      branchA: data.branchA,
+      branchA: {
+        ...data.branchA,
+        selectedSlangWords: selectedWords
+      },
       branchB: data.branchB,
       skipped: false
     });
@@ -139,6 +149,35 @@ export function AnnotationForm() {
 
           {hasSlang && (
             <div className="space-y-4 ml-6 mt-4 pt-4 border-t border-blue-200">
+              
+              {/* Word Selection */}
+              <div>
+                <Label className="text-base font-semibold mb-3 block text-blue-900">
+                  Select Slang Words (if any)
+                </Label>
+                <div className="flex flex-wrap gap-2 ml-4">
+                  {tokens.map((token, i) => {
+                    const isSelected = selectedWords.includes(token);
+                    return (
+                      <Button
+                        key={i}
+                        type="button"
+                        variant={isSelected ? "default" : "outline"}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedWords(selectedWords.filter(w => w !== token));
+                          } else {
+                            setSelectedWords([...selectedWords, token]);
+                          }
+                        }}
+                        className="rounded-full px-3 md:px-4 text-xs md:text-sm py-1 md:py-2"
+                      >
+                        {token}
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
               
               {/* A1: Slang Expression Type */}
               <div>

@@ -12,6 +12,7 @@ export interface Annotation {
   // Branch A: Slang / Profanity
   branchA: {
     hasSlang: boolean;
+    selectedSlangWords?: string[];
     slangExpressionType?: 'explicit' | 'masked_obfuscated';
     slangIntent?: 'expressive_casual' | 'directed_malicious';
   };
