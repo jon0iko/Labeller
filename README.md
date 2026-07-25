@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Labeller
 
-## Getting Started
+This project is a browser-based annotation tool for comment-level labeling. It is built for a two-branch scheme that separates slang or profanity from cyberbullying or toxicity, with enough structure to support consistent manual review on a local machine.
 
-First, run the development server:
+The app keeps the dataset and annotations in the browser using IndexedDB, so labeling can continue without a backend. A checkpoint is stored locally as well, which lets the session resume from the last position when the app is reopened.
+
+## What it does
+
+- Loads a JSON array of objects from disk.
+- Uses the `text` field from each object as the comment to label.
+- Walks through the dataset one comment at a time.
+- Saves annotations locally as they are entered.
+- Exports the completed labels as JSON.
+- Supports clearing the local dataset and annotation store.
+
+## Annotation scheme
+
+Each record is labeled through two branches:
+
+Branch A: Slang / Profanity
+
+- `hasSlang`
+- `slangExpressionType`: `explicit` or `masked_obfuscated`
+- `slangIntent`: `expressive_casual` or `directed_malicious`
+- Optional token-level selection of slang words from the comment text
+
+Branch B: Cyberbullying / Toxicity
+
+- `hasCyberbullying`
+- `bullyingStyle`: `explicit` or `implicit_sarcastic`
+- `targetEntity`: `individual`, `group_community`, or `organization`
+- `toxicVectors`: `body_shaming`, `gender_based_sexual`, `religious_communal`, `intellectual_status`, `threat_violence`
+- `severityLevel`: `low`, `medium`, or `high`
+
+Records can also be skipped. Skipped items stay in the local store but are omitted from export.
+
+## Requirements
+
+- Node.js 18 or newer
+- npm
+
+## Setup
+
+Install dependencies from the `Labeller` directory:
+
+```bash
+npm install
+```
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in the browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How to use it
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Load a dataset from the sidebar using `Load JSON`.
+2. Provide a JSON array where each object contains a non-empty `text` field.
+3. Read the comment shown in the main panel.
+4. Fill the applicable branch fields and choose any slang tokens if needed.
+5. Use `Save & Next` to store the annotation and move forward.
+6. Use `Skip` when the item should not be labeled.
+7. Use `Previous` to move back if a correction is needed.
+8. Export the finished set from the sidebar.
 
-## Learn More
+## Input format
 
-To learn more about Next.js, take a look at the following resources:
+The loader accepts an array of objects such as:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```json
+[
+	{ "text": "Example comment one" },
+	{ "text": "Example comment two" }
+]
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Only the `text` field is used by the annotator. Rows without valid text are ignored.
 
-## Deploy on Vercel
+## Output format
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Exported files contain the saved annotations in JSON with a serial number, the dataset `id`, the original `text`, and both branch payloads.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- Data is stored locally in the browser database named `LabellerDB`.
+- Reloading a new dataset clears the current local dataset and annotations.
+- The app restores the last visited position when the loaded dataset matches the saved checkpoint.
+
+## Scripts
+
+- `npm run dev` - start the development server
+- `npm run build` - create a production build
+- `npm start` - run the production build
+- `npm run lint` - run ESLint
